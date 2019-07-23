@@ -20,9 +20,9 @@ vector* vector_init(int length) {
   return out;
 }
 
-int vector_element (vector vec, int index) {
-  if (index < vec.length) {
-    return vec.contents[index];
+int vector_element (vector* vec, int index) {
+  if (index < vec->length) {
+    return vec->contents[index];
   }
   else {
     return -1;
@@ -58,15 +58,18 @@ void print_vector (vector vec) {
   for (int i = 0; i < vec.length; i++) {
     printf("[%d]: %d ", i, vec.contents[i]);
   }
+  printf("\n");
   return;
 }
 
 
 typedef struct wheel wheel;
 struct wheel {
-  vector base;
-  vector primes;
+  vector* base;
+  vector* primes;
   int max_number;
+  int min_number;
+  int next_base;
 };
 
 int primorial (vector* base) {
@@ -99,19 +102,68 @@ int* range_array(int start, int end) {
   return range;
 }
 
-void push_if_coprime ();
+void push_if_coprime (int* range, int size, vector* base, vector* dest) {
+  for (int i = 0; i < size; i++) {
+    if(!any_divisor_p(range[i], base)) {
+      vector_push(dest, range[i]);
+    }
+  }
+  return;
+}
 
+wheel* wheel_init () {
+  wheel* out = malloc(sizeof(wheel));
+  out->base = vector_init(1);
+  out->primes = vector_init(1);
+  int initial_base[] = {2,3};
+  vector_push_array(out->base, initial_base, 2);
+  vector_push_array(out->primes, initial_base, 2);
+  out->min_number = 2;
+  out->max_number = primorial(out->base);
+  out->next_base = 1;
+  return out;
+}
+
+void wheel_turn (wheel* factor) {
+  // Push primes with current data
+  int row_size = factor->max_number - factor->min_number;
+  int* row = range_array(factor->min_number, factor->max_number);
+  push_if_coprime(row, row_size, factor->base, factor->primes);
+  free(row);
+
+  // Update data for the next turn
+  factor->next_base++;
+  int next_prime = vector_element(factor->primes, factor->next_base);
+  vector_push(factor->base, next_prime);
+  factor->min_number = factor->max_number + 1;
+  factor->max_number *= next_prime;
+  return;
+}
+
+vector* primes_below_n (wheel* factor, int n) {
+  vector* out_vector = vector_init(1);
+  _Bool exceeded = 0;
+  for (int i = 0; !exceeded; i++) {
+    if (i >= factor->primes->length) {
+      wheel_turn(factor);
+    }
+    int prime = vector_element(factor->primes, i);
+    if (prime < n) {
+      vector_push(out_vector, prime);
+    }
+    else {
+      exceeded = 1;
+    }
+  }
+  return out_vector;
+}
 
 int main (int argc, char* argv[]) {
-  vector* vec = vector_init(1);
-  int tarray[] = {2,3,5,7};
-  vector_push_array(vec, tarray, 4);
-  int* tr = range_array(8, 15);
-  vector_push_array(vec, tr, 15-8);
-  print_vector(*vec);
-  
-
+  wheel* factor = wheel_init();
+  print_vector(*primes_below_n(factor, 200));
+  print_vector(*factor->base);
+ 
   return 0;
-}
+ }
 
 
