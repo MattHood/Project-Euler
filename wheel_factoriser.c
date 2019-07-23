@@ -140,30 +140,46 @@ void wheel_turn (wheel* factor) {
   return;
 }
 
-vector* primes_below_n (wheel* factor, int n) {
-  vector* out_vector = vector_init(1);
-  _Bool exceeded = 0;
-  for (int i = 0; !exceeded; i++) {
-    if (i >= factor->primes->length) {
-      wheel_turn(factor);
+int index_below_n (vector* primes, int n) {
+  assert(vector_element(primes, 0) <= n);
+
+  int min = 0;
+  int max = primes->length;
+
+  while (max - min > 1) {
+    int middle = ((max - min) / 2) + min;
+    int middle_value = vector_element(primes, middle);
+
+    if (n >= middle_value) {
+      min = middle;
     }
-    int prime = vector_element(factor->primes, i);
-    if (prime < n) {
-      vector_push(out_vector, prime);
-    }
-    else {
-      exceeded = 1;
+    if (n <= middle_value) {
+      max = middle;
     }
   }
-  return out_vector;
+
+  return min;
+}
+
+vector* primes_below_n (wheel* factor, int n) {
+  // Ensure that there are enough primes to reach n
+  while (n > vector_element(factor->primes, factor->primes->length - 1)) {
+    wheel_turn(factor);
+  }
+
+  int length = index_below_n(factor->primes, n) + 1;
+
+  vector* out = malloc(sizeof(vector));
+  out->contents = factor->primes->contents;
+  out->size = factor->primes->size;
+  out->length = length;
+  return out;
 }
 
 int main (int argc, char* argv[]) {
   wheel* factor = wheel_init();
-  print_vector(*primes_below_n(factor, 200));
-  print_vector(*factor->base);
- 
+  print_vector(*primes_below_n(factor, 35));
   return 0;
- }
+}
 
 
