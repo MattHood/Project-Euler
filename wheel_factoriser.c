@@ -136,7 +136,7 @@ void wheel_turn (wheel* factor) {
   int next_prime = vector_element(factor->primes, factor->next_base);
   vector_push(factor->base, next_prime);
   factor->min_number = factor->max_number + 1;
-  factor->max_number *= next_prime;
+  factor->max_number *= 2;
   return;
 }
 
