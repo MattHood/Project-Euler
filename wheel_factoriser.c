@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "vector.h"
 #include "wheel_factoriser.h"
+
+// TODO: get a file of prime numbers for comparison.
 
 int primorial (vector* base) {
   int acc = 1;
@@ -75,7 +78,7 @@ void wheel_turn (wheel* factor) {
   int next_prime = vector_element(factor->primes, factor->next_base);
   vector_push(factor->base, next_prime);
   factor->min_number = factor->max_number + 1;
-  factor->max_number *= 2;
+  factor->max_number = next_prime * next_prime;
   return;
 }
 
@@ -114,3 +117,72 @@ vector* primes_below_n (wheel* factor, int n) {
   out->length = length;
   return out;
 }
+
+vector* csv_to_vector (char file[]) {
+   FILE *fp;
+  fp = fopen(file, "r");
+  char sym;
+  char buffer[20];
+  int buffer_i = 0;
+  vector* vec = vector_init(1);
+  while ((sym = getc(fp)) != EOF || buffer_i < 20) {
+    if (sym == ',') {
+      vector_push(vec, atoi(buffer));
+      for (int i = 0; i <= buffer_i; i++) {
+        buffer[i] = 0;
+      }
+      buffer_i = 0;
+    }
+    else {
+      buffer[buffer_i] = sym;
+      buffer_i++;
+    }
+  }
+  return vec;
+}
+
+_Bool vector_cmp (vector* a, vector* b) {
+  int length;
+  if (a->length == b->length) {
+    length = a->length;
+  }
+  else {
+    printf("Length mismatch. A has %d, B has %d", a->length, b->length);
+    length = a->length < b->length ? a->length : b->length;
+  }
+
+  for (int i = 0; i < length; i++) {
+    if (vector_element(a, i) != vector_element(b, i)) {
+      printf("First difference at [%d]. A has %d, B has %d\n", i, vector_element(a, i), vector_element(b, i));
+      return 0;
+    }
+  }
+  return 1;
+
+}
+
+/*int main(int argc, char* argv[]) {
+  FILE *fp;
+  fp = fopen("primes.csv", "r");
+  assert(fp != NULL);
+  char sym;
+  vector* vec = vector_init(1);
+  while ((sym = getc(fp)) != EOF) {
+    if (sym == ',') {
+      printf("c");
+    }
+    else {
+      printf("n");
+    }
+    } 
+  wheel* factor = wheel_init();
+  vector* inprimes = csv_to_vector("primes.csv");
+  vector* myprimes = primes_below_n(factor, 7908);
+  if(vector_cmp(inprimes, myprimes)) {
+    printf("Success\n");
+  }
+  else {
+    printf("Fail\n");
+  }
+  return 0;
+  }*/

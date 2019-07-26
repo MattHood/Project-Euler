@@ -61,3 +61,27 @@ void print_vector (vector vec) {
   printf("\n");
   return;
 }
+
+int vector_last (vector* vec) {
+  return vector_element(vec, vec->length - 1);
+}
+
+// Tests
+
+void vector_test_fidelity (vector* vec) {
+  int i;
+  for (i = 0; i < 40000000; i++) {
+    vector_push(vec, i);
+    if (i != vector_last(vec)) {
+      printf("Failed at %d, got %d\n", i, vector_last(vec));
+      break;
+    }
+  }
+  printf("Pushed %d elements\n", i);
+}
+
+/*int main (int argc, char* argv[]) {
+  vector* vec = vector_init(1);
+  vector_test_fidelity(vec);
+  return 0;
+  }*/
