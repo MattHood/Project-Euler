@@ -1,31 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include "vector.h"
+#include "wheel_factoriser.h"
 
 typedef struct pair pair;
 struct pair {
   int car;
   int cdr;
 };
-
-typedef struct vector vector;
-struct vector {
-  
-};
-
-typedef struct factor_environment factor_environment;
-struct factor_environment {
-  int* base;
-  int* current_row;
-  int* primes;
-  int row_number;
-  int max_prime;
-};
-
-factor_environment* wheel_factor_init() {
-  factor_environment wheel;
-  wheel->base = vector_init();
-}
-
 
 pair cons (int car, int cdr) {
   pair cell = {.car = car, .cdr = cdr};
@@ -51,15 +34,54 @@ int triangular (int index) {
   return triangle;
 }
 
-void print_dims (int triangular_index) {
-  pair dims = triangular_dimensions(triangular_index);
-  printf("Dims of tri-%d = %d: %dx%d\n", triangular_index, triangular(triangular_index), dims.car, dims.cdr);
-  return;
+int divisor_score (int num, int den) {
+  int score = 0;
+  int remainder = num % den;
+  while (remainder == 0) {
+    score++;
+    num /= den;
+    remainder = num % den;
+  }
+  return score;
+}
+
+int factor_count (wheel* factor, int n) {
+  vector* primes = primes_below_n(factor, n);
+  if(n == 1) {
+    return 1;
+  }
+  int count = 1;
+  for (int i = 0; i < primes->length; i++) {
+    int score = divisor_score(n, vector_element(primes, i));
+    count *= score != 0 ? score + 1 : 1;
+  }
+  return count;
+}
+
+int triangular_factor_count (wheel* factor, int tri_index) {
+  pair dims = triangular_dimensions(tri_index);
+  int total = factor_count(factor, dims.car) * factor_count(factor, dims.cdr);
+  return total;
 }
 
 int main(int argc, char* argv[]) {
-  for (int i = 0; i <= 15; i++) {
-    print_dims(i);
+  wheel* factor = wheel_init();
+  int divisors = 0;
+  int i = 3;
+
+  while (i <= 20000) {
+    // divisors = triangular_factor_count(factor, i);
+    divisors = factor_count(factor, triangular(i));
+    if (divisors > 500) {
+      break;
+    }
+    if (i == 20000) {
+      printf("iterator exceeded 20,000");
+      break;
+    }
+    i++;
   }
+  printf("I: %d, N: %d, F: %d\n", i, triangular(i), triangular_factor_count(factor, i));
+
   return 0;
 }
